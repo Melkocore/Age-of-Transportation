@@ -27,7 +27,24 @@ sourceSets.main.resources {
 }
 
 repositories {
-    // Add here additional repositories if required by some of the dependencies below.
+    // Create, Ponder, Flywheel
+    maven { url = "https://maven.createmod.net" }
+    // Registrate
+    maven { url = "https://maven.ithundxr.dev/snapshots" }
+
+    // Modrinth Maven — para Sable, Aeronautics y sus compat mods
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "Modrinth"
+                url = "https://api.modrinth.com/maven"
+            }
+        }
+        filter { includeGroup("maven.modrinth") }
+    }
+    flatDir {
+        dirs 'libs'
+    }
 }
 
 base {
@@ -118,29 +135,30 @@ configurations {
 }
 
 dependencies {
-    // Example optional mod dependency with JEI
-    // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
-    // compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"
-    // compileOnly "mezz.jei:jei-${mc_version}-neoforge-api:${jei_version}"
-    // We add the full version to localRuntime, not runtimeOnly, so that we do not publish a dependency on it
-    // localRuntime "mezz.jei:jei-${mc_version}-neoforge:${jei_version}"
+    // --- CREATE ---
+    implementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") {
+        transitive = false
+    }
+    implementation("net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}")
+    compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${minecraft_version}:${flywheel_version}")
+    runtimeOnly("dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}")
+    implementation("com.tterrag.registrate:Registrate:${registrate_version}")
 
-    // Example mod dependency using a mod jar from ./libs with a flat dir repository
-    // This maps to ./libs/coolmod-${mc_version}-${coolmod_version}.jar
-    // The group id is ignored when searching -- in this case, it is "blank"
-    // implementation "blank:coolmod-${mc_version}:${coolmod_version}"
+    // --- SABLE, AERONAUTICS y COMPAT MODS (via Modrinth Maven) ---
+    // Solo para entorno de desarrollo — no se empaquetan en tu jar
+    // Los IDs son el slug de Modrinth + la version string exacta
+    compileOnly("maven.modrinth:sable:1.2.2+mc1.21.1")
+    localRuntime("maven.modrinth:sable:1.2.2+mc1.21.1")
 
-    // Example mod dependency using a file as dependency
-    // implementation files("libs/coolmod-${mc_version}-${coolmod_version}.jar")
+    compileOnly("maven.modrinth:create-aeronautics:1.2.1+mc1.21.1")
+    localRuntime("maven.modrinth:create-aeronautics:1.2.1+mc1.21.1")
+    // Physics compat, aeronautics compat y schematic API
+    // vienen bundled en el jar de Aeronautics — no son dependencias separadas
+    // Se accede a su API a través del jar de Aeronautics directamente
 
-    // Example project dependency using a sister or child project:
-    // implementation project(":myproject")
-
-    // For more info:
-    // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
-    // http://www.gradle.org/docs/current/userguide/dependency_management.html
+    compileOnly files('libs/sable-companion-common-1.21.1-1.6.0.jar')
+    compileOnly files('/tmp/META-INF/jarjar/dev.simulated_team.simulated.simulated-neoforge-1.21.1-1.2.1.jar')
 }
-
 // This block of code expands all declared replace properties in the specified resource targets.
 // A missing property will result in an error. Properties are expanded using ${} Groovy notation.
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
