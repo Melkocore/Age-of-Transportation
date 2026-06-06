@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "com.melkocore.ageoftransport.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "WorkAtPoiMixin",
+    "PoiManagerMixin",
+    "BrainMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
